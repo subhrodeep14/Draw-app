@@ -1,5 +1,5 @@
 {
-  "name": "my-turborepo",
+  "name": "Draw-app-web",
   "private": true,
   "scripts": {
     "build": "turbo build",
