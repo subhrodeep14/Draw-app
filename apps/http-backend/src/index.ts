@@ -1,10 +1,11 @@
 import express from "express";
 import jwt from "jsonwebtoken";
-import zod from "zod";
+import {signUpSchema,signInSchema,roomSchema} from "@repo/common/config";
 import  User  from "./db";
 import {middleware} from "./middileware";
+import {jwtSecret} from "@repo/backend-common/config";
 const app = express();
-const jwtSecret ="jhdjd"
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -13,15 +14,11 @@ app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-const signupSchema = zod.object({
-    username: zod.string(),
-    password: zod.string()
-    });
 
 app.post("/signup", async(req:any, res:any) => {
     
     
-    const { error } = signupSchema.safeParse(req.body);
+    const { error } = signUpSchema.safeParse(req.body);
     if(error) {
         return res.status(400).send(error.errors);
     }
@@ -32,7 +29,8 @@ app.post("/signup", async(req:any, res:any) => {
     const user = await User.create(
         {
             username: req.body.username,
-            password: req.body.password
+            password: req.body.password,
+            name: req.body.name
         }
     );
 
@@ -47,11 +45,11 @@ app.post("/signup", async(req:any, res:any) => {
 app.post("/signin",async(req:any, res:any) => {
     
     
-    const { error } = signupSchema.safeParse(req.body);
+    const { error } = signInSchema.safeParse(req.body);
     if(error) {
         return res.status(400).send(error.errors);
     }
-    const existingUser =await User.findOne({ username: req.body.username });
+    const existingUser =await User.findOne({ username: req.body.username, password: req.body.password });
 
     if(existingUser) {
         
@@ -67,6 +65,14 @@ app.post("/signin",async(req:any, res:any) => {
 
 app.post ("/room",middleware, async(req, res) => {
     //db call
+    const data=roomSchema.safeParse(req.body);
+    if(!data.success){
+        res.json({
+            message:"Invalid data"
+        });
+        return;
+    }
+
     res.send("Room created");
 });
     
