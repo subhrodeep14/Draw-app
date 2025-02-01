@@ -4,6 +4,7 @@ import {signUpSchema,signInSchema,roomSchema} from "@repo/common/config";
 import  User  from "./db";
 import {middleware} from "./middileware";
 import {jwtSecret} from "@repo/backend-common/config";
+import {prismaClient} from "@repo/db/config";
 const app = express();
 
 
@@ -26,13 +27,7 @@ app.post("/signup", async(req:any, res:any) => {
     if(!existingUser) {
         return res.status(400).send("User already exists"); 
     }
-    const user = await User.create(
-        {
-            username: req.body.username,
-            password: req.body.password,
-            name: req.body.name
-        }
-    );
+    
 
     const token = jwt.sign({ username: user.username},jwtSecret);
 
