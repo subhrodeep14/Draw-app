@@ -27,6 +27,13 @@ app.post("/signup", async(req:any, res:any) => {
     if(!existingUser) {
         return res.status(400).send("User already exists"); 
     }
+
+    prismaClient.user.create({
+        data: {
+          email: req.body.username,
+          password: req.body.password,
+        },
+    })
     
 
     const token = jwt.sign({ username: user.username},jwtSecret);
