@@ -19,47 +19,62 @@ app.get("/", (req, res) => {
 app.post("/signup", async(req:any, res:any) => {
     
     
-    const { error } = signUpSchema.safeParse(req.body);
-    if(error) {
-        return res.status(400).send(error.errors);
-    }
-    const existingUser = User.findOne({ username: req.body.username });
-    if(!existingUser) {
-        return res.status(400).send("User already exists"); 
+    const parseData = signUpSchema.safeParse(req.body);
+    if(!parseData.success) {
+        return res.status(400).json({"message":"Invalid data"});
     }
 
-    prismaClient.user.create({
-        data: {
-          email: req.body.username,
-          password: req.body.password,
-        },
-    })
+    try {
+        await prismaClient.user.create({
+            data: {
+                email: parseData.data.username,
+                password: parseData.data.password,
+                name: parseData.data.name
+            }
+        });
     
+        const token = jwt.sign({ username: parseData.data.username }, jwtSecret);
+    
+        res.json({
+           "meassge":"User created" ,
+             token
+             });
+        
+    } catch (error) {
+        res.status(400).json({
+            "message": "User already exists"
+        });
+        
+    }
 
-    const token = jwt.sign({ username: user.username},jwtSecret);
-
-    res.json({
-       "meassge":"User created" ,
-         token
-         });
 });
 
 app.post("/signin",async(req:any, res:any) => {
     
     
-    const { error } = signInSchema.safeParse(req.body);
-    if(error) {
-        return res.status(400).send(error.errors);
-    }
-    const existingUser =await User.findOne({ username: req.body.username, password: req.body.password });
-
-    if(existingUser) {
+    const parseData = signInSchema.safeParse(req.body);
+    try {
         
-     const token = jwt.sign({username:existingUser.username },jwtSecret);
-    return res.json({
-       "message":"User not found",
-          token
-      });
+        if(parseData.success) {
+    
+    
+            const existingUser =await User.findOne({ username: parseData.data.username, password: parseData.data.password });
+        
+            if(existingUser) {
+                
+             const token = jwt.sign({username:existingUser.username },jwtSecret);
+            return res.json({
+               "message":"User not found",
+                  token
+              });
+            }
+            }
+            
+    } catch (error) {
+        res.status(400).json({
+            "message": "User already exists" 
+    });
+        
     }
     
 
