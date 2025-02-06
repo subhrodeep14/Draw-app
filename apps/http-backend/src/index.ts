@@ -1,10 +1,9 @@
 import express from "express";
 import jwt from "jsonwebtoken";
-import {signUpSchema,signInSchema,roomSchema} from "@repo/common/config";
-import  User  from "./db";
+import {signUpSchema,signInSchema,roomSchema} from "@repo/common/types";
 import {middleware} from "./middileware";
-import {jwtSecret} from "@repo/backend-common/config";
-import {prismaClient} from "@repo/db/config";
+import {JWT_SECRET} from '@repo/backend-common/config'
+import {prismaClient} from "@repo/db/config"
 const app = express();
 
 
@@ -33,7 +32,7 @@ app.post("/signup", async(req:any, res:any) => {
             }
         });
     
-        const token = jwt.sign({ username: parseData.data.username }, jwtSecret);
+        const token = jwt.sign({ username: parseData.data.username }, JWT_SECRET);
     
         res.json({
            "meassge":"User created" ,
@@ -53,29 +52,19 @@ app.post("/signin",async(req:any, res:any) => {
     
     
     const parseData = signInSchema.safeParse(req.body);
-    try {
+
         
-        if(parseData.success) {
     
     
-            const existingUser =await User.findOne({ username: parseData.data.username, password: parseData.data.password });
+    
         
-            if(existingUser) {
-                
-             const token = jwt.sign({username:existingUser.username },jwtSecret);
-            return res.json({
-               "message":"User not found",
-                  token
-              });
-            }
-            }
             
-    } catch (error) {
+    
         res.status(400).json({
             "message": "User already exists" 
     });
         
-    }
+    
     
 
 });
